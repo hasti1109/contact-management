@@ -3,6 +3,7 @@ constants = {
   UNAUTHORIZED : 401,
   FORBIDDEN : 403,
   NOT_FOUND : 404,
+  CONFLICT : 409,
   SERVER_ERROR : 500
 };
 
@@ -34,6 +35,13 @@ const errorHandler = (err,req,res,next) => {
 
     case constants.FORBIDDEN:
       res.json({title : "Forbidden" ,
+                message : err.message, 
+                stackTrace:err.stack
+              });
+      break;
+
+    case constants.CONFLICT:
+      res.json({title : "Conflict" ,
                 message : err.message, 
                 stackTrace:err.stack
               });
