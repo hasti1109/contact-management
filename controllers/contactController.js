@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Contact = require('../models/contactModel');
 const {ObjectId} = require('mongodb');
 const { upload } = require('../middleware/imageUpload');
+const { createObjectCsvWriter } = require('csv-writer');
 
 //@desc Get all contacts
 //@route GET /api/contacts
@@ -23,7 +24,7 @@ const createContact = asyncHandler(async (req,res) => {
   const {name,email,phones} = req.body;
 
   if (!name || !email || !phones || phones.length===0){
-    res.status(404);
+    res.status(400);
     throw new Error('All fields are necessary.');
   }
 
@@ -147,4 +148,25 @@ const uploadImage = asyncHandler(async (req,res) => {
   });
 })
 
-module.exports = {getContacts, createContact, getContact, updateContact, deleteContact, uploadImage};
+//@desc Export contacts to CSV
+//@route GET /api/contacts/export-contact
+//@access public
+const exportContacts = asyncHandler(async (req,res) => {
+  const contacts =  await Contact.find()
+  if (contacts.length == 0){
+    res.status(200).json({message:'No contacts exist.'})
+    return
+  }
+  const csvWriter = createObjectCsvWriter({
+    path: 'contacts.csv',
+    header: [
+      { id: 'name', title: 'Name' },
+      { id: 'email', title: 'Email' },
+      { id: 'phones', title: 'Phones', formatter: (phones) => phones.join(', ') }
+    ]
+  })
+  await csvWriter.writeRecords(contacts);
+  res.status(200).download('contacts.csv')
+})
+
+module.exports = {getContacts, createContact, getContact, updateContact, deleteContact, uploadImage, exportContacts};
