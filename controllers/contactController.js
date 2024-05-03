@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Contact = require('../models/contactModel');
 const {ObjectId} = require('mongodb');
+const { upload } = require('../middleware/imageUpload');
 
 //@desc Get all contacts
 //@route GET /api/contacts
@@ -92,7 +93,7 @@ const updateContact = asyncHandler(async (req,res) => {
       req.body,
       {new: true}
     );
-    
+
     res.status(200).json(`Updated Contact: ${updatedContact}`);
   }
   else{
@@ -119,4 +120,31 @@ const deleteContact = asyncHandler(async (req,res) => {
   }
 });
 
-module.exports = {getContacts, createContact, getContact, updateContact, deleteContact};
+//@desc Upload an image
+//@route POST /api/contacts/:id/upload-image
+//@access public
+const uploadImage = asyncHandler(async (req,res) => {
+  const { id } = req.params;
+    const contact = await Contact.findById(id);
+    
+    if (!contact) {
+      res.status(404);
+      throw new Error('Contact not found');
+    }
+
+    upload.single('image')(req, res, async (err) => {
+      if (err){
+        res.status(500).json(err);
+        //throw new Error(err);
+        return
+      }
+
+      contact.image = req.file.path;
+
+      await contact.save();
+
+      res.status(200).json({ message: 'Image uploaded successfully' });
+  });
+})
+
+module.exports = {getContacts, createContact, getContact, updateContact, deleteContact, uploadImage};
