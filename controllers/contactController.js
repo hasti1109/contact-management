@@ -19,16 +19,16 @@ const getContacts = asyncHandler(async (req,res) => {
 //@access public
 const createContact = asyncHandler(async (req,res) => {
   //console.log(`the request body is: ${req.body}`);
-  const {name,email,phone} = req.body;
+  const {name,email,phones} = req.body;
 
-  if (!name || !email || !phone){
+  if (!name || !email || !phones || phones.length===0){
     res.status(404);
     throw new Error('All fields are necessary.');
   }
 
   // Check if the phone number already exists
-  const existingContact = await Contact.findOne({ phone: phone });
-  if (existingContact) {
+  const existingContact = await Contact.find({ phones: { $in: phones } });
+  if (existingContact.length > 0) {
       res.status(409);
       throw new Error('Contact with this phone number already exists.');
   }
@@ -37,7 +37,7 @@ const createContact = asyncHandler(async (req,res) => {
   const contact = await Contact.create({
     name,
     email,
-    phone,
+    phones,
   });
   res.status(201).json(`Created contact:${contact}`);
 })
@@ -62,7 +62,7 @@ const getContact = asyncHandler(async (req, res) => {
     const contacts = await Contact.find({
       $or: [
         { name: { $regex: id, $options: 'i' } },
-        { phone: { $regex: id, $options: 'i' } }
+        { phones: { $in: [id] } }
       ]
     });
     if (contacts.length === 0) {
@@ -78,24 +78,27 @@ const getContact = asyncHandler(async (req, res) => {
 //@route PUT /api/contacts/:id
 //@access public
 const updateContact = asyncHandler(async (req,res) => {
+
   if (ObjectId.isValid(req.params.id)){
     const contact = await Contact.findById(req.params.id);
+
     if(!contact){
       res.status(404);
       throw new Error('Contact not found');
     }
+
     const updatedContact = await Contact.findByIdAndUpdate(
       req.params.id,
       req.body,
       {new: true}
     );
+    
     res.status(200).json(`Updated Contact: ${updatedContact}`);
   }
   else{
     res.status(400);
     throw new Error('Invalid Id');
   }
-  
 });
 
 //@desc Delete a contact
