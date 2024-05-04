@@ -8,7 +8,6 @@ constants = {
 };
 
 const errorHandler = (err,req,res,next) => {
-  //if there is no status code then set it to 500
   const statusCode = res.statusCode ? res.statusCode : 500;
 
   switch (statusCode) {
