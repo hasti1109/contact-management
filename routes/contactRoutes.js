@@ -12,5 +12,4 @@ router.route('/:id').get(getContact).put(updateContact).delete(deleteContact);
 router.route('/:id/upload-image').put(uploadImage);
 
 
-
 module.exports = router;
