@@ -40,9 +40,9 @@ Get dependencies
 npm install
 ```
 
-Run locally
+Start server
 
 ```bash
-npm run dev
+npm run start
 ```
     
